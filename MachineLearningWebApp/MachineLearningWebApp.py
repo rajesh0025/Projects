@@ -15,7 +15,6 @@ from sklearn.decomposition import PCA
 
 
 st.title("Machine Learning Web Application")
-
 st.write("""
 # Explore different classifiers
 which one is the best?
