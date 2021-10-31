@@ -1,12 +1,15 @@
 import numpy as np
 import cv2
 import os
-from numpy.core.fromnumeric import size
-from sklearn.model_selection import train_test_split 
+from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 from keras.preprocessing.image import ImageDataGenerator
 from keras.utils.np_utils import to_categorical
-
+from keras.models import Sequential
+from keras.layers import Dense
+from keras.optimizers import Adam
+from keras.layers import Dropout,Flatten
+from keras.layers.convolutional import Conv2D,MaxPooling2D
 
 path = "TextDetectionUsingNeuralNetworks\myData"
 testRatio = 0.2
@@ -17,13 +20,13 @@ classNo = []
 myList = os.listdir(path)
 print("Total no of Classes detected", len(myList))
 noOfClasses = len(myList)
-
+imageDimensions = (32, 32, 3)
 print("Importing Classes.....")
 for x in range(0, noOfClasses):
     myPicList = os.listdir(path+"/"+str(x))#read each num folder
     for y in myPicList:
         curImg = cv2.imread(path+"/"+str(x)+"/"+y)#each image of respective folder
-        curImg = cv2.resize(curImg, (32,32))#resize 180/180 to 32/32 because it is computationally expensive
+        curImg = cv2.resize(curImg, (imageDimentions[0], imageDimentions[1]))#resize 180/180 to 32/32 because it is computationally expensive
         images.append(curImg)#all images stored
         classNo.append(x)#all class no are stored
     print(x,end= " ")
@@ -90,13 +93,31 @@ y_train = to_categorical(y_train, noOfClasses)
 y_test = to_categorical(y_test, noOfClasses)
 y_validation = to_categorical(y_validation, noOfClasses)
 
+#### CREATING THE MODEL 
 def myModel():
-    noOfFilters=60
-    sizeOfFilter1=(5,5)
-    sizeOfFilter2=(3,3)
-    sizeOfPool=(2,2)
-    noOfNode=500
+    noOfFilters = 60
+    sizeOfFilter1 = (5,5)
+    sizeOfFilter2 = (3, 3)
+    sizeOfPool = (2,2)
+    noOfNodes= 500
 
-     
+    model = Sequential()
+    model.add((Conv2D(noOfFilters,sizeOfFilter1,input_shape=(imageDimensions[0],
+                      imageDimensions[1],1),activation='relu')))
+    model.add((Conv2D(noOfFilters, sizeOfFilter1, activation='relu')))
+    model.add(MaxPooling2D(pool_size=sizeOfPool))
+    model.add((Conv2D(noOfFilters//2, sizeOfFilter2, activation='relu')))
+    model.add((Conv2D(noOfFilters//2, sizeOfFilter2, activation='relu')))
+    model.add(MaxPooling2D(pool_size=sizeOfPool))
+    model.add(Dropout(0.5))
 
+    model.add(Flatten())
+    model.add(Dense(noOfNodes,activation='relu'))
+    model.add(Dropout(0.5))
+    model.add(Dense(noOfClasses, activation='softmax'))
 
+    model.compile(Adam(lr=0.001),loss='categorical_crossentropy',metrics=['accuracy'])
+    return model
+
+model = myModel()
+print(model.summary())
