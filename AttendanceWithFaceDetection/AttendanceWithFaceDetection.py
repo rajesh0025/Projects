@@ -4,8 +4,6 @@ import face_recognition
 import os 
 from datetime import datetime
 
-from numpy.lib.shape_base import _make_along_axis_idx
-
 path = "AttendanceWithFaceDetection\imageAttendance"
 images = []
 classNames = []
